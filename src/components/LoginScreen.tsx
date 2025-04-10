@@ -1,30 +1,31 @@
-import React, { useEffect } from 'react';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase';
+import { useEffect } from "react";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../firebase";
 
 export default function LoginScreen() {
   const signInWithGoogle = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
-      console.error('Error signing in with Google:', error);
+      console.error("Error signing in with Google:", error);
     }
   };
 
   useEffect(() => {
-    const canvas = document.getElementById('flowCanvas') as HTMLCanvasElement;
+    const canvas = document.getElementById("flowCanvas") as HTMLCanvasElement;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d')!;
-    const particles: Array<{x: number; y: number; vx: number; vy: number}> = [];
-    const particleCount = 100; // Increased particle count
+    const ctx = canvas.getContext("2d")!;
+    const particles: Array<{ x: number; y: number; vx: number; vy: number }> =
+      [];
+    const particleCount = 100;
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
 
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
     for (let i = 0; i < particleCount; i++) {
@@ -32,15 +33,15 @@ export default function LoginScreen() {
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         vx: (Math.random() - 0.5) * 1.5,
-        vy: (Math.random() - 0.5) * 1.5
+        vy: (Math.random() - 0.5) * 1.5,
       });
     }
 
     const animate = () => {
-      ctx.fillStyle = 'rgba(17, 24, 39, 0.1)'; // Dark background
+      ctx.fillStyle = "rgba(17, 24, 39, 0.1)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)'; // Subtle blue lines
+      ctx.strokeStyle = "rgba(59, 130, 246, 0.2)";
       ctx.lineWidth = 0.5;
 
       particles.forEach((particle, i) => {
@@ -56,7 +57,7 @@ export default function LoginScreen() {
           const dy = particle.y - p2.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          if (distance < 200) { // Increased connection distance
+          if (distance < 200) {
             ctx.beginPath();
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(p2.x, p2.y);
@@ -64,7 +65,7 @@ export default function LoginScreen() {
           }
         });
 
-        ctx.fillStyle = 'rgba(59, 130, 246, 0.6)'; // Brighter particles
+        ctx.fillStyle = "rgba(59, 130, 246, 0.6)";
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, 1.5, 0, Math.PI * 2);
         ctx.fill();
@@ -76,7 +77,7 @@ export default function LoginScreen() {
     animate();
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener("resize", resizeCanvas);
     };
   }, []);
 
@@ -85,10 +86,14 @@ export default function LoginScreen() {
       <canvas id="flowCanvas" className="absolute inset-0" />
       <div className="max-w-md w-full space-y-8 p-8 bg-gray-800 rounded-lg shadow-2xl relative z-10 backdrop-blur-sm bg-opacity-80">
         <div className="text-center">
-          <h2 className="text-4xl font-extrabold text-white">Workflow Builder</h2>
-          <p className="mt-4 text-lg text-gray-300">Design, Build, and Execute Workflows</p>
+          <h2 className="text-4xl font-extrabold text-white">
+            Workflow Builder
+          </h2>
+          <p className="mt-4 text-lg text-gray-300">
+            Design, Build, and Execute Workflows
+          </p>
         </div>
-        
+
         <button
           onClick={signInWithGoogle}
           className="w-full flex items-center justify-center px-4 py-3 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 mt-8 rounded-md"
@@ -112,7 +117,9 @@ export default function LoginScreen() {
                 fill="#EA4335"
               />
             </svg>
-            <span className="text-gray-900 font-medium">Sign in with Google</span>
+            <span className="text-gray-900 font-medium">
+              Sign in with Google
+            </span>
           </div>
         </button>
       </div>

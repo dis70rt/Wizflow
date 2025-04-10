@@ -14,7 +14,7 @@ export interface TaskNode {
   loading?: boolean;
   breakpoint?: boolean;
   depends_on: string[];
-  // Email specific fields
+  
   subject?: string;
   emailBody?: string;
   recipients?: string[];
