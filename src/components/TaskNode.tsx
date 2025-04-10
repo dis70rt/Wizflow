@@ -36,12 +36,50 @@ interface TaskNodeProps {
     subject?: string;
     emailBody?: string;
     recipients?: string[];
+    inputs?: { path: string };
   };
 }
 
 export default function TaskNode({ data }: TaskNodeProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [rotation, setRotation] = useState(0);
+  const [headersError, setHeadersError] = useState<string | null>(null);
+  const [headersJson, setHeadersJson] = useState(
+    data.headers ? JSON.stringify(data.headers, null, 2) : ""
+  );
+
+  useEffect(() => {
+    setHeadersJson(data.headers ? JSON.stringify(data.headers, null, 2) : "");
+  }, [data.headers]);
+
+  const isValidJson = (text: string): boolean => {
+    try {
+      const parsed = JSON.parse(text);
+      if (typeof parsed !== "object" || parsed === null) {
+        throw new Error("Must be a JSON object");
+      }
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    try {
+      if (data.headers) {
+        if (typeof data.headers !== "object") {
+          throw new Error("Invalid headers format");
+        }
+        setHeadersJson(JSON.stringify(data.headers, null, 2));
+        setHeadersError(null);
+      } else {
+        setHeadersJson("");
+      }
+    } catch (error) {
+      setHeadersError("Invalid headers format received");
+      setHeadersJson("");
+    }
+  }, [data.headers]);
 
   const outputConfigData = useMemo(() => {
     const outputKey = Object.keys(data.outputs || {})[0] || "";
@@ -126,8 +164,20 @@ export default function TaskNode({ data }: TaskNodeProps) {
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    console.log("Data: ", data);
+
     if (file) {
-      updateNodeData({ file });
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("workflowID", "workflowID");
+      formData.append("userID", "userID");
+
+      const response = fetch("http://localhost:8000/api/v1/upload", {
+        method: "POST",
+
+        body: formData,
+      });
+      updateNodeData({ inputs: { path: `/userID/workflowID/${file.name}` } });
     }
   };
 
@@ -309,19 +359,56 @@ export default function TaskNode({ data }: TaskNodeProps) {
                   Headers (JSON)
                 </label>
                 <textarea
-                  value={
-                    data.headers ? JSON.stringify(data.headers, null, 2) : ""
-                  }
+                  value={headersJson}
                   onChange={(e) => {
+                    const text = e.target.value;
+                    setHeadersJson(text);
+
+                    if (text.trim() === "") {
+                      setHeadersError(null);
+                      updateNodeData({ headers: undefined });
+                      return;
+                    }
+
                     try {
-                      const headers = JSON.parse(e.target.value);
-                      updateNodeData({ headers });
-                    } catch {}
+                      const parsedHeaders = JSON.parse(text);
+
+                      if (
+                        typeof parsedHeaders !== "object" ||
+                        parsedHeaders === null
+                      ) {
+                        throw new Error("Headers must be a JSON object");
+                      }
+
+                      if (
+                        Object.entries(parsedHeaders).some(
+                          ([key, value]) => typeof value !== "string"
+                        )
+                      ) {
+                        throw new Error("All header values must be strings");
+                      }
+
+                      setHeadersError(null);
+                      updateNodeData({ headers: JSON.parse(text) });
+                    } catch (error) {
+                      setHeadersError(
+                        error instanceof Error
+                          ? error.message
+                          : "Invalid JSON format"
+                      );
+                    }
                   }}
-                  className="w-full px-2 py-1 text-sm border rounded font-mono"
+                  className={`w-full px-2 py-1 text-sm border rounded font-mono ${
+                    headersError ? "border-red-500" : "border-gray-300"
+                  }`}
                   placeholder='{"Content-Type": "application/json"}'
                   rows={3}
                 />
+                {headersError && (
+                  <div className="text-red-500 text-xs mt-1">
+                    Invalid JSON: {headersError}
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -376,7 +463,7 @@ export default function TaskNode({ data }: TaskNodeProps) {
               filePath: data.outputs ? data.outputs[Object.keys(data.outputs || {})[0]]?.path : ''
             }}
             updateNodeData={(update) => {
-              // Merge the output configuration update with existing data
+              
               updateNodeData(update);
             } } taskType={"SHELL"}            /> */}
 

@@ -48,6 +48,9 @@ function App() {
   const [user, setUser] = useState(auth.currentUser);
   const [isSaving, setIsSaving] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isWorkflowCompleted, setIsWorkflowCompleted] = useState(false);
 
   const ws = useRef<WebSocket | null>(null);
 
@@ -82,11 +85,12 @@ function App() {
         if (node.data.command) taskData.command = node.data.command;
         if (node.data.method) taskData.method = node.data.method;
         if (node.data.url) taskData.url = node.data.url;
-        if (node.data.headers) taskData.headers = JSON.parse(node.data.headers);
+        if (node.data.headers) taskData.headers = node.data.headers;
         if (node.data.outputs) taskData.outputs = node.data.outputs;
         if (node.data.subject) taskData.subject = node.data.subject;
         if (node.data.emailBody) taskData.emailBody = node.data.emailBody;
         if (node.data.recipients) taskData.recipients = node.data.recipients;
+        if (node.data.inputs) taskData.inputs = node.data.inputs;
 
         return taskData;
       }),
@@ -100,13 +104,21 @@ function App() {
   }, [generateWorkflowJson, nodes, edges, workflowName, description]);
 
   useEffect(() => {
-    const allCompleted = nodes.every(
+    const allCompleted = nodes.length > 0 && nodes.every(
       (node) => node.data.status === "COMPLETED"
     );
-    if (allCompleted && nodes.length > 0) {
-      toast.success("Workflow execution completed successfully!");
+  
+    if (allCompleted) {
+      if (!isWorkflowCompleted) {
+        toast.success("Workflow execution completed successfully!");
+        setIsWorkflowCompleted(true);
+      }
+    } else {
+      if (isWorkflowCompleted) {
+        setIsWorkflowCompleted(false);
+      }
     }
-  }, [nodes]);
+  }, [nodes, isWorkflowCompleted]);
 
   useEffect(() => {
     return () => {
@@ -216,6 +228,72 @@ function App() {
       console.error("Error saving workflow:", error);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handlePause = async () => {
+    if (!user || isRunning) return;
+
+    setIsPaused(true);
+    try {
+      if (ws.current) {
+        ws.current.close();
+      }
+
+      ws.current = new WebSocket("ws://172.20.75.63:8000/ws");
+
+      ws.current.onopen = () => {
+        console.log("WebSocket connection opened");
+        ws.current?.send(JSON.stringify({ type: "PAUSE" }));
+        toast.success("Workflow execution started");
+      };
+
+      ws.current.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        toast.error("WebSocket connection error");
+      };
+
+      ws.current.onclose = (event) => {
+        console.log("WebSocket closed:", event);
+      };
+    } catch (error) {
+      console.error("Error running workflow:", error);
+      toast.error("Failed to start workflow execution");
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleResume = async () => {
+    if (!user || isRunning) return;
+
+    setIsPaused(false);
+    try {
+      if (ws.current) {
+        ws.current.close();
+      }
+
+      ws.current = new WebSocket("ws://172.20.75.63:8000/ws");
+
+      ws.current.onopen = () => {
+        console.log("WebSocket connection opened");
+        ws.current?.send(JSON.stringify({ type: "RESUME" }));
+        toast.success("Workflow execution started");
+      };
+
+      ws.current.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        toast.error("WebSocket connection error");
+      };
+
+      ws.current.onclose = (event) => {
+        console.log("WebSocket closed:", event);
+      };
+    } catch (error) {
+      console.error("Error running workflow:", error);
+      toast.error("Failed to start workflow execution");
+    } finally {
+      setIsRunning(false);
     }
   };
 
@@ -448,6 +526,12 @@ function App() {
               className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-all duration-200 flex items-center gap-2"
             >
               {isSaving ? "Saving..." : "Save"}
+            </button>
+            <button
+              onClick={isPaused ? handleResume : handlePause}
+              className="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-50 transition-all duration-200"
+            >
+              {isPaused ? "Resume" : "Pause"}
             </button>
             <button
               onClick={handleRun}

@@ -21,12 +21,12 @@ const OutputConfig: React.FC<OutputConfigProps> = ({
   const [filePath, setFilePath] = useState(data.filePath || '');
   const [jsonPath, setJsonPath] = useState(data.jsonPath || '');
 
-//   useEffect(() => {
-//     setOutputKey(data.outputKey || '');
-//     setOutputType(data.type || 'file');
-//     setFilePath(data.filePath || '');
-//     setJsonPath(data.jsonPath || '');
-//   }, [data]);
+
+
+
+
+
+
 
 
   useEffect(() => {
