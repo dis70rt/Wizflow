@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Terminal, Globe, LogOut, Plus, Trash2, Mail } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
-import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 interface WorkflowItem {

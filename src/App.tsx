@@ -49,7 +49,6 @@ function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [isWorkflowCompleted, setIsWorkflowCompleted] = useState(false);
 
   const ws = useRef<WebSocket | null>(null);
@@ -104,10 +103,10 @@ function App() {
   }, [generateWorkflowJson, nodes, edges, workflowName, description]);
 
   useEffect(() => {
-    const allCompleted = nodes.length > 0 && nodes.every(
-      (node) => node.data.status === "COMPLETED"
-    );
-  
+    const allCompleted =
+      nodes.length > 0 &&
+      nodes.every((node) => node.data.status === "COMPLETED");
+
     if (allCompleted) {
       if (!isWorkflowCompleted) {
         toast.success("Workflow execution completed successfully!");

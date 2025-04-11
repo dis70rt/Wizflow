@@ -52,17 +52,12 @@ export default function TaskNode({ data }: TaskNodeProps) {
     setHeadersJson(data.headers ? JSON.stringify(data.headers, null, 2) : "");
   }, [data.headers]);
 
-  const isValidJson = (text: string): boolean => {
-    try {
-      const parsed = JSON.parse(text);
-      if (typeof parsed !== "object" || parsed === null) {
-        throw new Error("Must be a JSON object");
-      }
-      return true;
-    } catch (error) {
-      return false;
+  useEffect(() => {
+    if (data.type === "RESTAPI" && !data.method) {
+      updateNodeData({ method: "GET" });
     }
-  };
+  }, [data.type, data.method]);
+
 
   useEffect(() => {
     try {
@@ -172,11 +167,6 @@ export default function TaskNode({ data }: TaskNodeProps) {
       formData.append("workflowID", "workflowID");
       formData.append("userID", "userID");
 
-      const response = fetch("http://localhost:8000/api/v1/upload", {
-        method: "POST",
-
-        body: formData,
-      });
       updateNodeData({ inputs: { path: `/userID/workflowID/${file.name}` } });
     }
   };
@@ -382,7 +372,7 @@ export default function TaskNode({ data }: TaskNodeProps) {
 
                       if (
                         Object.entries(parsedHeaders).some(
-                          ([key, value]) => typeof value !== "string"
+                          ([, value]) => typeof value !== "string"
                         )
                       ) {
                         throw new Error("All header values must be strings");
