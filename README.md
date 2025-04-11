@@ -124,8 +124,8 @@ vite-react-typescript-starter/
 
 ```bash
 # Clone the repository
-git clone https://github.com/Hemant2A2/Wizflow-frontend.git
-cd Wizflow-frontend
+https://github.com/dis70rt/Wizflow.git
+cd Wizflow
 
 # Install dependencies
 npm install
