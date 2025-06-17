@@ -188,8 +188,3 @@ MIT License
 ---
 
 ### ✨ Built with ❤️ by Team Wizflow for Nutanix Hackathon 2025
-
-
----
-
-Let me know if you'd like a badge section, images/gifs, or contribution guidelines added!
